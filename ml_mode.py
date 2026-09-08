@@ -4,7 +4,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
 
 # Load dataset directly from GitHub
-url = "url = "https://raw.githubusercontent.com/bhatnagaralka63-ui/student-performance-analysis/main/student_performance.csv""
+url =  "https://raw.githubusercontent.com/bhatnagaralka63-ui/student-performance-analysis/main/student_performance.csv"
 
 df = pd.read_csv(url)
 
