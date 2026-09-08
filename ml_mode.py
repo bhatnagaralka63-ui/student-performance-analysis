@@ -48,7 +48,12 @@ print("R² Score:", round(r2, 2))
 study_hours = 6
 attendance = 92
 
-prediction = model.predict([[study_hours, attendance]])
+new_student = pd.DataFrame({
+    "Study_Hours": [study_hours],
+    "Attendance": [attendance]
+})
+
+prediction = model.predict(new_student)
 
 print("\n===== STUDENT PREDICTION =====")
 print("Study Hours:", study_hours)
