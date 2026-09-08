@@ -3,8 +3,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
 
-# Load dataset
-df = pd.read_csv("student_performance.csv")
+# Load dataset directly from GitHub
+url = "https://raw.githubusercontent.com/YOUR-USERNAME/YOUR-REPOSITORY/main/student_performance.csv"
+
+df = pd.read_csv(url)
 
 # Create average score
 df["Average_Score"] = (
@@ -19,7 +21,7 @@ X = df[["Study_Hours", "Attendance"]]
 # Target
 y = df["Average_Score"]
 
-# Split data
+# Split dataset
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -27,16 +29,14 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=42
 )
 
-# Create Machine Learning model
-model = LinearRegression()
-
 # Train model
+model = LinearRegression()
 model.fit(X_train, y_train)
 
-# Make predictions
+# Predictions
 predictions = model.predict(X_test)
 
-# Evaluate model
+# Model evaluation
 mae = mean_absolute_error(y_test, predictions)
 r2 = r2_score(y_test, predictions)
 
@@ -44,18 +44,13 @@ print("===== MODEL RESULTS =====")
 print("Mean Absolute Error:", round(mae, 2))
 print("R² Score:", round(r2, 2))
 
-# Predict a new student's performance
+# Example prediction
 study_hours = 6
 attendance = 92
 
-prediction = model.predict(
-    [[study_hours, attendance]]
-)
+prediction = model.predict([[study_hours, attendance]])
 
-print("\n===== NEW STUDENT PREDICTION =====")
+print("\n===== STUDENT PREDICTION =====")
 print("Study Hours:", study_hours)
 print("Attendance:", attendance)
-print(
-    "Predicted Average Score:",
-    round(prediction[0], 2)
-)
+print("Predicted Average Score:", round(prediction[0], 2))
