@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -8,14 +7,65 @@ from sklearn.metrics import mean_absolute_error, r2_score
 
 
 # ============================================================
-# PAGE CONFIGURATION
+# PAGE CONFIG
 # ============================================================
 
 st.set_page_config(
-    page_title="Student Performance Dashboard",
+    page_title="Student Performance Analytics",
     page_icon="📊",
     layout="wide"
 )
+
+
+# ============================================================
+# CUSTOM CSS
+# ============================================================
+
+st.markdown("""
+<style>
+
+.main {
+    background-color: #0e1117;
+}
+
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+h1 {
+    font-size: 42px !important;
+    font-weight: 700 !important;
+}
+
+h2 {
+    font-weight: 650 !important;
+}
+
+h3 {
+    font-weight: 600 !important;
+}
+
+[data-testid="stMetric"] {
+    background: #161b22;
+    border: 1px solid #30363d;
+    padding: 20px;
+    border-radius: 14px;
+}
+
+[data-testid="stMetricValue"] {
+    font-size: 28px;
+}
+
+.stButton > button {
+    width: 100%;
+    border-radius: 10px;
+    height: 45px;
+    font-weight: 600;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 
 # ============================================================
@@ -42,14 +92,51 @@ df = load_data()
 
 
 # ============================================================
+# SIDEBAR
+# ============================================================
+
+st.sidebar.title("🎛️ Dashboard Controls")
+
+st.sidebar.subheader("Filters")
+
+min_hours = float(df["Study_Hours"].min())
+max_hours = float(df["Study_Hours"].max())
+
+study_filter = st.sidebar.slider(
+    "Study Hours",
+    min_value=min_hours,
+    max_value=max_hours,
+    value=(min_hours, max_hours),
+    step=0.5
+)
+
+attendance_filter = st.sidebar.slider(
+    "Attendance (%)",
+    min_value=int(df["Attendance"].min()),
+    max_value=int(df["Attendance"].max()),
+    value=(
+        int(df["Attendance"].min()),
+        int(df["Attendance"].max())
+    )
+)
+
+filtered_df = df[
+    (df["Study_Hours"] >= study_filter[0])
+    & (df["Study_Hours"] <= study_filter[1])
+    & (df["Attendance"] >= attendance_filter[0])
+    & (df["Attendance"] <= attendance_filter[1])
+]
+
+
+# ============================================================
 # HEADER
 # ============================================================
 
-st.title("📊 Student Performance Dashboard")
+st.title("📊 Student Performance Analytics")
 
 st.write(
-    "An interactive dashboard for analyzing student performance "
-    "using study hours, attendance and academic scores."
+    "Interactive analysis of student performance using "
+    "study hours, attendance, academic scores and machine learning."
 )
 
 st.divider()
@@ -59,10 +146,19 @@ st.divider()
 # KEY METRICS
 # ============================================================
 
-average_score = df["Average_Score"].mean()
-average_study_hours = df["Study_Hours"].mean()
-average_attendance = df["Attendance"].mean()
-highest_score = df["Average_Score"].max()
+if len(filtered_df) > 0:
+
+    average_score = filtered_df["Average_Score"].mean()
+    average_study = filtered_df["Study_Hours"].mean()
+    average_attendance = filtered_df["Attendance"].mean()
+    highest_score = filtered_df["Average_Score"].max()
+
+else:
+
+    average_score = 0
+    average_study = 0
+    average_attendance = 0
+    highest_score = 0
 
 
 col1, col2, col3, col4 = st.columns(4)
@@ -76,7 +172,7 @@ with col1:
 with col2:
     st.metric(
         "📚 Avg Study Hours",
-        f"{average_study_hours:.2f}"
+        f"{average_study:.2f}"
     )
 
 with col3:
@@ -96,33 +192,17 @@ st.divider()
 
 
 # ============================================================
-# DATASET
+# FILTERED DATA
 # ============================================================
 
-st.header("📋 Student Dataset")
+st.header("👨‍🎓 Student Records")
 
-st.dataframe(
-    df,
-    use_container_width=True
-)
-
-
-# ============================================================
-# TOP PERFORMERS
-# ============================================================
-
-st.header("🏆 Top Performing Students")
-
-top_students = (
-    df.sort_values(
-        by="Average_Score",
-        ascending=False
-    )
-    .head(5)
+st.write(
+    f"Showing **{len(filtered_df)}** students based on your filters."
 )
 
 st.dataframe(
-    top_students[
+    filtered_df[
         [
             "Name",
             "Study_Hours",
@@ -133,8 +213,44 @@ st.dataframe(
             "Average_Score"
         ]
     ],
-    use_container_width=True
+    use_container_width=True,
+    hide_index=True
 )
+
+
+# ============================================================
+# TOP STUDENTS
+# ============================================================
+
+st.header("🏆 Top Performing Students")
+
+top_students = (
+    filtered_df
+    .sort_values(
+        by="Average_Score",
+        ascending=False
+    )
+    .head(5)
+)
+
+if len(top_students) > 0:
+
+    st.dataframe(
+        top_students[
+            [
+                "Name",
+                "Study_Hours",
+                "Attendance",
+                "Average_Score"
+            ]
+        ],
+        use_container_width=True,
+        hide_index=True
+    )
+
+else:
+
+    st.info("No students match the selected filters.")
 
 
 st.divider()
@@ -153,23 +269,33 @@ subjects = [
 ]
 
 subject_averages = [
-    df["Math_Score"].mean(),
-    df["Science_Score"].mean(),
-    df["English_Score"].mean()
+    filtered_df["Math_Score"].mean(),
+    filtered_df["Science_Score"].mean(),
+    filtered_df["English_Score"].mean()
 ]
 
-fig1, ax1 = plt.subplots(figsize=(8, 5))
+if len(filtered_df) > 0:
 
-ax1.bar(
-    subjects,
-    subject_averages
-)
+    fig1, ax1 = plt.subplots(figsize=(9, 5))
 
-ax1.set_title("Average Score by Subject")
-ax1.set_xlabel("Subject")
-ax1.set_ylabel("Average Score")
+    ax1.bar(
+        subjects,
+        subject_averages
+    )
 
-st.pyplot(fig1)
+    ax1.set_title(
+        "Average Score by Subject"
+    )
+
+    ax1.set_xlabel("Subject")
+    ax1.set_ylabel("Average Score")
+
+    ax1.set_ylim(0, 100)
+
+    st.pyplot(
+        fig1,
+        use_container_width=True
+    )
 
 
 # ============================================================
@@ -178,18 +304,28 @@ st.pyplot(fig1)
 
 st.header("📚 Study Hours vs Performance")
 
-fig2, ax2 = plt.subplots(figsize=(8, 5))
+if len(filtered_df) > 0:
 
-ax2.scatter(
-    df["Study_Hours"],
-    df["Average_Score"]
-)
+    fig2, ax2 = plt.subplots(figsize=(9, 5))
 
-ax2.set_title("Study Hours vs Average Score")
-ax2.set_xlabel("Study Hours")
-ax2.set_ylabel("Average Score")
+    ax2.scatter(
+        filtered_df["Study_Hours"],
+        filtered_df["Average_Score"]
+    )
 
-st.pyplot(fig2)
+    ax2.set_title(
+        "Study Hours vs Average Score"
+    )
+
+    ax2.set_xlabel("Study Hours")
+    ax2.set_ylabel("Average Score")
+
+    ax2.set_ylim(0, 100)
+
+    st.pyplot(
+        fig2,
+        use_container_width=True
+    )
 
 
 # ============================================================
@@ -198,36 +334,67 @@ st.pyplot(fig2)
 
 st.header("🏫 Attendance vs Performance")
 
-fig3, ax3 = plt.subplots(figsize=(8, 5))
+if len(filtered_df) > 0:
 
-ax3.scatter(
-    df["Attendance"],
-    df["Average_Score"]
-)
+    fig3, ax3 = plt.subplots(figsize=(9, 5))
 
-ax3.set_title("Attendance vs Average Score")
-ax3.set_xlabel("Attendance (%)")
-ax3.set_ylabel("Average Score")
+    ax3.scatter(
+        filtered_df["Attendance"],
+        filtered_df["Average_Score"]
+    )
 
-st.pyplot(fig3)
+    ax3.set_title(
+        "Attendance vs Average Score"
+    )
+
+    ax3.set_xlabel("Attendance (%)")
+    ax3.set_ylabel("Average Score")
+
+    ax3.set_ylim(0, 100)
+
+    st.pyplot(
+        fig3,
+        use_container_width=True
+    )
 
 
 st.divider()
 
 
 # ============================================================
-# MACHINE LEARNING
+# CORRELATION
 # ============================================================
 
-st.header("🤖 Student Performance Prediction")
+st.header("🔗 Correlation Analysis")
 
-st.write(
-    "The machine learning model uses Study Hours and Attendance "
-    "to predict a student's Average Score."
+correlation = df[
+    [
+        "Study_Hours",
+        "Attendance",
+        "Average_Score"
+    ]
+].corr()
+
+st.dataframe(
+    correlation.round(3),
+    use_container_width=True
 )
 
 
-# Features
+# ============================================================
+# MACHINE LEARNING MODEL
+# ============================================================
+
+st.divider()
+
+st.header("🤖 Machine Learning Prediction")
+
+st.write(
+    "A Linear Regression model predicts Average Score "
+    "using Study Hours and Attendance."
+)
+
+
 X = df[
     [
         "Study_Hours",
@@ -235,11 +402,9 @@ X = df[
     ]
 ]
 
-# Target
 y = df["Average_Score"]
 
 
-# Split dataset
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -248,22 +413,19 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 
-# Create model
 model = LinearRegression()
 
-
-# Train model
 model.fit(
     X_train,
     y_train
 )
 
 
-# Test model
-predictions = model.predict(X_test)
+predictions = model.predict(
+    X_test
+)
 
 
-# Evaluate model
 mae = mean_absolute_error(
     y_test,
     predictions
@@ -276,21 +438,30 @@ r2 = r2_score(
 
 
 # ============================================================
-# MODEL RESULTS
+# MODEL METRICS
 # ============================================================
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 with col1:
+
     st.metric(
-        "Mean Absolute Error",
+        "MAE",
         f"{mae:.2f}"
     )
 
 with col2:
+
     st.metric(
         "R² Score",
         f"{r2:.2f}"
+    )
+
+with col3:
+
+    st.metric(
+        "Training Records",
+        len(X_train)
     )
 
 
@@ -298,46 +469,41 @@ st.divider()
 
 
 # ============================================================
-# STUDENT PREDICTION
+# PREDICTION
 # ============================================================
 
-st.subheader("🎯 Predict a Student's Performance")
+st.subheader("🎯 Predict Student Performance")
 
 col1, col2 = st.columns(2)
 
 with col1:
 
-    study_hours = st.slider(
+    prediction_hours = st.slider(
         "Study Hours",
-        min_value=0.0,
-        max_value=12.0,
-        value=6.0,
-        step=0.5
+        0.0,
+        12.0,
+        6.0,
+        0.5
     )
 
 with col2:
 
-    attendance = st.slider(
+    prediction_attendance = st.slider(
         "Attendance (%)",
-        min_value=0,
-        max_value=100,
-        value=92
+        0,
+        100,
+        90
     )
 
 
-# ============================================================
-# PREDICTION BUTTON
-# ============================================================
-
 if st.button(
-    "🔮 Predict Performance",
-    use_container_width=True
+    "🔮 Predict Performance"
 ):
 
     new_student = pd.DataFrame(
         {
-            "Study_Hours": [study_hours],
-            "Attendance": [attendance]
+            "Study_Hours": [prediction_hours],
+            "Attendance": [prediction_attendance]
         }
     )
 
@@ -357,8 +523,6 @@ if st.button(
         f"Predicted Average Score: {prediction:.2f}"
     )
 
-
-    # Performance classification
 
     if prediction >= 90:
 
@@ -386,29 +550,70 @@ if st.button(
 
 
 # ============================================================
-# CORRELATION ANALYSIS
+# AUTOMATIC INSIGHTS
 # ============================================================
 
 st.divider()
 
-st.header("🔗 Correlation Analysis")
+st.header("💡 Key Insights")
 
-correlation = df[
-    [
-        "Study_Hours",
-        "Attendance",
-        "Average_Score"
+if len(df) > 0:
+
+    best_student = df.loc[
+        df["Average_Score"].idxmax()
     ]
-].corr()
 
-st.dataframe(
-    correlation,
-    use_container_width=True
-)
+    highest_study_student = df.loc[
+        df["Study_Hours"].idxmax()
+    ]
+
+    highest_attendance_student = df.loc[
+        df["Attendance"].idxmax()
+    ]
+
+    st.write(
+        f"🏆 **Top performer:** {best_student['Name']} "
+        f"with an average score of "
+        f"**{best_student['Average_Score']:.2f}**."
+    )
+
+    st.write(
+        f"📚 **Highest study time:** "
+        f"{highest_study_student['Name']} "
+        f"with {highest_study_student['Study_Hours']} study hours."
+    )
+
+    st.write(
+        f"🏫 **Highest attendance:** "
+        f"{highest_attendance_student['Name']} "
+        f"with {highest_attendance_student['Attendance']}% attendance."
+    )
+
+    study_correlation = df[
+        "Study_Hours"
+    ].corr(
+        df["Average_Score"]
+    )
+
+    attendance_correlation = df[
+        "Attendance"
+    ].corr(
+        df["Average_Score"]
+    )
+
+    st.write(
+        f"📈 **Study Hours correlation:** "
+        f"{study_correlation:.2f}"
+    )
+
+    st.write(
+        f"📊 **Attendance correlation:** "
+        f"{attendance_correlation:.2f}"
+    )
 
 
 # ============================================================
-# PROJECT INFORMATION
+# ABOUT
 # ============================================================
 
 st.divider()
@@ -417,22 +622,24 @@ st.header("ℹ️ About This Project")
 
 st.write(
     """
-This dashboard is part of a Student Performance Analysis project
-built using Python, Pandas, Matplotlib and Scikit-learn.
+This project demonstrates a complete beginner-level
+Data Science workflow:
 
-The project demonstrates:
-
-• Data analysis
-• Data visualization
+• Data collection
+• Data cleaning
+• Exploratory Data Analysis
 • Statistical analysis
+• Data visualization
 • Correlation analysis
-• Machine learning
-• Linear regression
-• Student performance prediction
+• Machine Learning
+• Linear Regression
+• Interactive prediction
+• Streamlit dashboard development
 
-The dataset currently contains 20 student records, so the machine
-learning results are intended as a demonstration rather than a
-production-ready predictive system.
+The dataset currently contains 20 student records.
+
+The machine learning results are intended for demonstration
+and learning purposes rather than real-world deployment.
 """
 )
 
@@ -444,5 +651,5 @@ production-ready predictive system.
 st.divider()
 
 st.caption(
-    "Student Performance Analysis • Built with Python & Streamlit"
+    "Student Performance Analysis • Python • Pandas • Matplotlib • Scikit-learn • Streamlit"
 )
