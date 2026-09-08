@@ -1,4 +1,4 @@
-```python
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -42,7 +42,7 @@ df = load_data()
 
 
 # ============================================================
-# TITLE
+# HEADER
 # ============================================================
 
 st.title("📊 Student Performance Dashboard")
@@ -51,7 +51,6 @@ st.write(
     "An interactive dashboard for analyzing student performance "
     "using study hours, attendance and academic scores."
 )
-
 
 st.divider()
 
@@ -63,9 +62,7 @@ st.divider()
 average_score = df["Average_Score"].mean()
 average_study_hours = df["Study_Hours"].mean()
 average_attendance = df["Attendance"].mean()
-
 highest_score = df["Average_Score"].max()
-lowest_score = df["Average_Score"].min()
 
 
 col1, col2, col3, col4 = st.columns(4)
@@ -111,7 +108,7 @@ st.dataframe(
 
 
 # ============================================================
-# TOP STUDENTS
+# TOP PERFORMERS
 # ============================================================
 
 st.header("🏆 Top Performing Students")
@@ -150,9 +147,9 @@ st.divider()
 st.header("📚 Subject Performance")
 
 subjects = [
-    "Math_Score",
-    "Science_Score",
-    "English_Score"
+    "Math",
+    "Science",
+    "English"
 ]
 
 subject_averages = [
@@ -160,7 +157,6 @@ subject_averages = [
     df["Science_Score"].mean(),
     df["English_Score"].mean()
 ]
-
 
 fig1, ax1 = plt.subplots(figsize=(8, 5))
 
@@ -172,8 +168,6 @@ ax1.bar(
 ax1.set_title("Average Score by Subject")
 ax1.set_xlabel("Subject")
 ax1.set_ylabel("Average Score")
-
-plt.xticks(rotation=15)
 
 st.pyplot(fig1)
 
@@ -222,14 +216,14 @@ st.divider()
 
 
 # ============================================================
-# MACHINE LEARNING MODEL
+# MACHINE LEARNING
 # ============================================================
 
 st.header("🤖 Student Performance Prediction")
 
 st.write(
-    "The machine learning model uses **Study Hours** and "
-    "**Attendance** to predict a student's average score."
+    "The machine learning model uses Study Hours and Attendance "
+    "to predict a student's Average Score."
 )
 
 
@@ -245,7 +239,7 @@ X = df[
 y = df["Average_Score"]
 
 
-# Train/test split
+# Split dataset
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -265,11 +259,11 @@ model.fit(
 )
 
 
-# Predictions
+# Test model
 predictions = model.predict(X_test)
 
 
-# Model evaluation
+# Evaluate model
 mae = mean_absolute_error(
     y_test,
     predictions
@@ -282,20 +276,18 @@ r2 = r2_score(
 
 
 # ============================================================
-# MODEL METRICS
+# MODEL RESULTS
 # ============================================================
 
 col1, col2 = st.columns(2)
 
 with col1:
-
     st.metric(
         "Mean Absolute Error",
         f"{mae:.2f}"
     )
 
 with col2:
-
     st.metric(
         "R² Score",
         f"{r2:.2f}"
@@ -306,14 +298,12 @@ st.divider()
 
 
 # ============================================================
-# PREDICTION INPUTS
+# STUDENT PREDICTION
 # ============================================================
 
-st.subheader("🎯 Predict Student Performance")
-
+st.subheader("🎯 Predict a Student's Performance")
 
 col1, col2 = st.columns(2)
-
 
 with col1:
 
@@ -324,7 +314,6 @@ with col1:
         value=6.0,
         step=0.5
     )
-
 
 with col2:
 
@@ -337,7 +326,7 @@ with col2:
 
 
 # ============================================================
-# PREDICTION
+# PREDICTION BUTTON
 # ============================================================
 
 if st.button(
@@ -364,13 +353,12 @@ if st.button(
         )
     )
 
-
     st.success(
         f"Predicted Average Score: {prediction:.2f}"
     )
 
 
-    # Performance category
+    # Performance classification
 
     if prediction >= 90:
 
@@ -405,7 +393,6 @@ st.divider()
 
 st.header("🔗 Correlation Analysis")
 
-
 correlation = df[
     [
         "Study_Hours",
@@ -413,7 +400,6 @@ correlation = df[
         "Average_Score"
     ]
 ].corr()
-
 
 st.dataframe(
     correlation,
@@ -436,13 +422,13 @@ built using Python, Pandas, Matplotlib and Scikit-learn.
 
 The project demonstrates:
 
-- Data analysis
-- Data visualization
-- Statistical analysis
-- Correlation analysis
-- Machine learning
-- Linear regression
-- Student performance prediction
+• Data analysis
+• Data visualization
+• Statistical analysis
+• Correlation analysis
+• Machine learning
+• Linear regression
+• Student performance prediction
 
 The dataset currently contains 20 student records, so the machine
 learning results are intended as a demonstration rather than a
@@ -460,4 +446,3 @@ st.divider()
 st.caption(
     "Student Performance Analysis • Built with Python & Streamlit"
 )
-```
