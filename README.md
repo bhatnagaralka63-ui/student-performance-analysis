@@ -299,7 +299,7 @@ https://github.com/bhatnagaralka63-ui/student-performance-analysis
 
 **Live Project Page**
 
-https://bhatnagaralka63-ui.github.io/student-performance-analysis/
+https://student-performance-analysis-yjqtdkwwnvza32t3gqokfk.streamlit.app/
 
 ---
 
